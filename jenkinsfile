@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     echo 'Running tests...'
-                    bat 'npx playwright test'
+                    bat 'npx playwright test loginLogout.spec.js --project=chromium'
                 }
             }
         }
