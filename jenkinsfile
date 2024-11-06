@@ -9,44 +9,45 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    if (!fileExists('node_modules')) {
-                        echo 'Installing dependencies...'
-                        sh 'npm install'
-                    } else {
-                        echo 'Dependencies already installed.'
-                    }
+                    echo 'Installing dependencies...'
+                    // Ensure npm or node is in the system PATH.
+                    bat 'npm install'
                 }
             }
         }
         stage('Install Playwright') {
             steps {
                 script {
-                    if (!fileExists('/root/.cache/ms-playwright')) {
-                        echo 'Installing Playwright browsers...'
-                        sh 'npx playwright install'
-                    } else {
-                        echo 'Playwright already installed.'
-                    }
+                    echo 'Installing Playwright...'
+                    // Ensure this command runs on Windows.
+                    bat 'npx playwright install'
                 }
             }
         }
         stage('Run Tests') {
-            environment {
-                NODE_ENV = 'qa'
-            }
             steps {
-                sh 'npm test'
+                script {
+                    echo 'Running tests...'
+                    bat 'npx playwright test'
+                }
             }
         }
         stage('Generate Report') {
             steps {
-                sh 'npx playwright show-report src/Testreport'
+                script {
+                    echo 'Generating report...'
+                    // Add the logic for generating the report, if needed.
+                    bat 'npx playwright show-report'
+                }
             }
         }
     }
     post {
         always {
             echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
         }
         failure {
             echo 'Pipeline failed.'
