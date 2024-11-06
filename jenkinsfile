@@ -1,70 +1,55 @@
 pipeline {
     agent any
-
-    environment {
-        NODE_ENV = 'qa'                         // Set the environment variable for QA environment
-        REPORT_DIR = 'src/Testreport'           // Directory for Playwright report
-        PROJECT_DIR = 'E:\\projects\\gradient-ui-e2e-tests'  // Path to the local project directory
-        PLAYWRIGHT_CACHE_DIR = 'C:\\WINDOWS\\system32\\config\\systemprofile\\.cache\\ms-playwright'  // Playwright cache path
-    }
-
     stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/singhsajal/gradient-ui-e2e-test-personal.git'
+            }
+        }
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Change to local project directory and install dependencies
-                    dir(PROJECT_DIR) {
-                        if (!fileExists('node_modules')) {
-                            echo 'Installing dependencies...'
-                            bat 'npm install'
-                        } else {
-                            echo 'Dependencies already installed.'
-                        }
+                    if (!fileExists('node_modules')) {
+                        echo 'Installing dependencies...'
+                        sh 'npm install'
+                    } else {
+                        echo 'Dependencies already installed.'
                     }
                 }
             }
         }
-
         stage('Install Playwright') {
             steps {
                 script {
-                    // Check if Playwright browsers are installed
-                    dir(PROJECT_DIR) {
-                        if (!fileExists(PLAYWRIGHT_CACHE_DIR)) {
-                            echo 'Installing Playwright browsers...'
-                            bat 'npx playwright install'
-                        } else {
-                            echo 'Playwright browsers already installed.'
-                        }
+                    if (!fileExists('/root/.cache/ms-playwright')) {
+                        echo 'Installing Playwright browsers...'
+                        sh 'npx playwright install'
+                    } else {
+                        echo 'Playwright already installed.'
                     }
                 }
             }
         }
-
         stage('Run Tests') {
+            environment {
+                NODE_ENV = 'qa'
+            }
             steps {
-                script {
-                    // Change to local project directory and run the tests
-                    dir(PROJECT_DIR) {
-                        echo 'Running tests...'
-                        bat 'npm test'  // Runs the test defined in your package.json
-
-                        // Check if the report directory exists, create it if not
-                        if (!fileExists(REPORT_DIR)) {
-                            bat "mkdir ${REPORT_DIR}"
-                        }
-
-                        // Show the Playwright report
-                        bat "npx playwright show-report ${REPORT_DIR}"
-                    }
-                }
+                sh 'npm test'
+            }
+        }
+        stage('Generate Report') {
+            steps {
+                sh 'npx playwright show-report src/Testreport'
             }
         }
     }
-
     post {
         always {
             echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }

@@ -15,6 +15,7 @@
   },
   "description": "",
   "dependencies": {
+    "gradient_test": "file:",
     "playwright": "^1.44.1"
   }
 }
