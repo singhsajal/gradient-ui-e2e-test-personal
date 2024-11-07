@@ -6,24 +6,41 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/singhsajal/gradient-ui-e2e-test-personal.git'
             }
         }
+        
         stage('Install Dependencies') {
             steps {
                 script {
-                    echo 'Installing dependencies...'
-                    // Ensure npm or node is in the system PATH.
-                    bat 'npm install'
+                    echo 'Checking if dependencies are already installed...'
+                    // Check if node_modules exists to determine if npm install is necessary
+                    def nodeModulesExist = fileExists('node_modules')
+                    
+                    if (!nodeModulesExist) {
+                        echo 'node_modules not found. Installing npm dependencies...'
+                        bat 'npm install'
+                    } else {
+                        echo 'Dependencies already installed. Skipping npm install.'
+                    }
                 }
             }
         }
+
         stage('Install Playwright') {
             steps {
                 script {
-                    echo 'Installing Playwright...'
-                    // Ensure this command runs on Windows.
-                    bat 'npx playwright install'
+                    echo 'Checking if Playwright is already installed...'
+                    // Check if Playwright is installed by looking for a specific Playwright folder or binary
+                    def playwrightInstalled = fileExists('path/to/playwright/folder') // Update path as needed
+                    
+                    if (!playwrightInstalled) {
+                        echo 'Playwright not found. Installing Playwright...'
+                        bat 'npx playwright install'
+                    } else {
+                        echo 'Playwright already installed. Skipping installation.'
+                    }
                 }
             }
         }
+
         stage('Run Tests') {
             steps {
                 script {
@@ -32,16 +49,17 @@ pipeline {
                 }
             }
         }
+
         stage('Generate Report') {
             steps {
                 script {
                     echo 'Generating report...'
-                    // Add the logic for generating the report, if needed.
                     bat 'npx playwright show-report'
                 }
             }
         }
     }
+    
     post {
         always {
             echo 'Pipeline finished.'
